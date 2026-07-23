@@ -4,6 +4,8 @@ Nederlandse app om Italiaans te leren (Nederlands → Italiaans).
 
 Interactive beginner Italian practice for Dutch speakers: an A1-style course path plus **Spreken** drills. Progress is saved in the browser (`localStorage`).
 
+**Live:** [it.sandercokart.com](https://it.sandercokart.com)
+
 > **Language support:** This application is **Dutch → Italian** only. **English is not supported** at this time (UI copy and speaking prompts are aimed at Dutch learners).
 
 ## Run locally

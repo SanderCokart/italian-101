@@ -874,6 +874,39 @@ h3 {
   color: var(--ink-muted);
 }
 
+.speaking-stage-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.speaking-stage-chip {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-muted);
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 0.35rem 0.8rem;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.speaking-stage-chip:hover {
+  color: var(--ink);
+  border-color: rgba(228, 184, 74, 0.45);
+}
+
+.speaking-stage-chip.is-active {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #1a1a12;
+  font-weight: 600;
+}
+
 .speaking-stage {
   margin: 0;
   color: var(--gold);

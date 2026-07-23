@@ -7,6 +7,7 @@ import {
   type OrderMode,
   type SpeakingMode,
   type SpeakingPrompt,
+  type SpeakingStageId,
 } from "@/content/speaking";
 import {
   getSpeakingSlot,
@@ -192,6 +193,14 @@ export function SpeakingPractice() {
     applySession(mode, orderMode, { reset: true });
   }
 
+  function jumpToStage(stageId: SpeakingStageId) {
+    const start = order.findIndex((p) => p.stage === stageId);
+    if (start < 0) return;
+    setDone(false);
+    setRevealed(false);
+    setIndex(start);
+  }
+
   const modeToggle = (
     <div className="mode-toggle" role="group" aria-label="Oefenmodus">
       <button
@@ -259,6 +268,24 @@ export function SpeakingPractice() {
               : " in willekeurige volgorde."}{" "}
             Voortgang is opgeslagen in deze browser.
           </p>
+          {orderMode === "progressive" ? (
+            <nav className="speaking-stage-nav" aria-label="Sectie kiezen">
+              {SPEAKING_STAGES.map((s) => {
+                const hasStage = order.some((p) => p.stage === s.id);
+                if (!hasStage) return null;
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    className="speaking-stage-chip"
+                    onClick={() => jumpToStage(s.id)}
+                  >
+                    {s.titleNl}
+                  </button>
+                );
+              })}
+            </nav>
+          ) : null}
           <div className="btn-row">
             <button type="button" className="btn btn-primary" onClick={restart}>
               Opnieuw
@@ -301,6 +328,28 @@ export function SpeakingPractice() {
         </div>
       </div>
 
+      {orderMode === "progressive" ? (
+        <nav className="speaking-stage-nav" aria-label="Sectie kiezen">
+          {SPEAKING_STAGES.map((s) => {
+            const hasStage = order.some((p) => p.stage === s.id);
+            if (!hasStage) return null;
+            return (
+              <button
+                key={s.id}
+                type="button"
+                className={`speaking-stage-chip ${
+                  current?.stage === s.id ? "is-active" : ""
+                }`}
+                onClick={() => jumpToStage(s.id)}
+                aria-current={current?.stage === s.id ? "true" : undefined}
+              >
+                {s.titleNl}
+              </button>
+            );
+          })}
+        </nav>
+      ) : null}
+
       {orderMode === "progressive" && stageMeta ? (
         <p className="speaking-stage">{stageMeta.titleEn}</p>
       ) : null}
@@ -308,7 +357,7 @@ export function SpeakingPractice() {
       <p className="speaking-hint">
         Lees het Nederlands, zeg het Italiaans hardop, en tik om te controleren.
         {orderMode === "progressive"
-          ? " Je gaat stap voor stap van café naar plaatsen."
+          ? " Kies hierboven een sectie om te oefenen of over te slaan."
           : " Willekeurige volgorde = moeilijker."}{" "}
         Instellingen en voortgang blijven bewaard.
       </p>

@@ -5,6 +5,26 @@ All notable changes to Italian 101 are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.4.0] — 2026-07-23
+
+### Added
+
+- Live deployment at [it.sandercokart.com](https://it.sandercokart.com)
+- Speaking stage chips in **Opbouw** mode to jump to café, begroetingen, herkomst, familie, persoonlijkheid, or plaatsen
+- More café and greeting sentence variants (plain orders without *per favore*, thanks/perfect frames, interleaved mixes)
+- Deterministic within-stage shuffle so progressive order stays varied but stable across reloads
+
+### Changed
+
+- README documents Dutch → Italian focus (English unsupported) and links the live site
+- MIT license added to the repository
+
+### Notes
+
+- Hosted on Dokploy (`personal` / Railpack) with HTTPS via Cloudflare DNS
+
+[0.4.0]: https://github.com/SanderCokart/italian-101/releases/tag/v0.4.0
+
 ## [0.3.0] — 2026-07-23
 
 ### Added

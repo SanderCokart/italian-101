@@ -25,7 +25,8 @@ export default function SpeakingPage() {
       </h1>
       <p className="lede">
         Standaard in <strong>opbouwende volgorde</strong>: café → begroetingen →
-        herkomst → familie → persoonlijkheid → plaatsen. Zet{" "}
+        herkomst → familie → persoonlijkheid → plaatsen. In Opbouw kun je elke
+        sectie aantikken om er naartoe te springen. Zet{" "}
         <strong>Willekeurig</strong> aan voor extra moeilijkheid. Instellingen
         en voortgang worden in deze browser bewaard. ({counts.word} woorden ·{" "}
         {counts.sentence} zinnen)

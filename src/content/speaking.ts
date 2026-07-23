@@ -138,126 +138,214 @@ function shuffle<T>(items: T[]): T[] {
   return arr;
 }
 
+/** Stable string → uint32 seed (FNV-1a). */
+function hashSeed(s: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+function mulberry32(seed: number): () => number {
+  return () => {
+    let t = (seed += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** Looks random, but identical every load for the same seed. */
+function seededShuffle<T>(items: T[], seed: string): T[] {
+  const arr = [...items];
+  const rand = mulberry32(hashSeed(seed));
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+/** Fixed round-robin mix — varies frames without randomizing. */
+function interleaveGroups<T>(...groups: T[][]): T[] {
+  const out: T[] = [];
+  const max = Math.max(0, ...groups.map((g) => g.length));
+  for (let i = 0; i < max; i++) {
+    for (const g of groups) {
+      if (i < g.length) out.push(g[i]);
+    }
+  }
+  return out;
+}
+
 type Draft = { nl: string; it: string; stage: SpeakingStageId };
 
 function stageCafe(): Draft[] {
-  const out: Draft[] = [];
+  const bare: Draft[] = [];
+  const please: Draft[] = [];
+  const thanks: Draft[] = [];
+  const perfect: Draft[] = [];
+  const barePairs: Draft[] = [];
+  const pleasePairs: Draft[] = [];
+
   for (const d of drinks) {
-    out.push({
+    // Plain order — "per favore" is optional in real café talk
+    bare.push({
+      stage: "cafe",
+      nl: `Een ${d.nl}.`,
+      it: `${artPhrase(d)}.`,
+    });
+    please.push({
       stage: "cafe",
       nl: `Een ${d.nl}, alsjeblieft.`,
       it: `${artPhrase(d)}, per favore.`,
+    });
+    thanks.push({
+      stage: "cafe",
+      nl: `Dank je. Een ${d.nl}.`,
+      it: `Grazie. ${artPhrase(d)}.`,
+    });
+    perfect.push({
+      stage: "cafe",
+      nl: `Perfect, een ${d.nl}.`,
+      it: `Perfetto, ${artPhrase(d)}.`,
     });
   }
   for (let i = 0; i < drinks.length; i++) {
     for (let j = i + 1; j < drinks.length; j++) {
       const a = drinks[i];
       const b = drinks[j];
-      out.push({
+      barePairs.push({
+        stage: "cafe",
+        nl: `Een ${a.nl} en een ${b.nl}.`,
+        it: `${artPhrase(a)} e ${artPhrase(b)}.`,
+      });
+      pleasePairs.push({
         stage: "cafe",
         nl: `Een ${a.nl} en een ${b.nl}, alsjeblieft.`,
         it: `${artPhrase(a)} e ${artPhrase(b)}, per favore.`,
       });
     }
   }
-  for (const d of drinks) {
-    out.push({
-      stage: "cafe",
-      nl: `Dank je. Een ${d.nl}.`,
-      it: `Grazie. ${artPhrase(d)}.`,
-    });
-    out.push({
-      stage: "cafe",
-      nl: `Perfect, een ${d.nl} alsjeblieft.`,
-      it: `Perfetto, ${artPhrase(d)} per favore.`,
-    });
-  }
-  return out;
+  return interleaveGroups(
+    bare,
+    please,
+    thanks,
+    perfect,
+    barePairs,
+    pleasePairs,
+  );
 }
 
 function stageGreetings(): Draft[] {
-  const out: Draft[] = [];
+  const hellos: Draft[] = [];
+  const withGrazie: Draft[] = [];
+  const withPiacere: Draft[] = [];
+  const byes: Draft[] = [];
+  const extras: Draft[] = [
+    { stage: "greetings", nl: "Aangenaam!", it: "Piacere!" },
+    { stage: "greetings", nl: "Perfect, dank je.", it: "Perfetto, grazie." },
+    { stage: "greetings", nl: "Goed, dank je.", it: "Bene, grazie." },
+    { stage: "greetings", nl: "Ja, perfect.", it: "Sì, perfetto." },
+    { stage: "greetings", nl: "Nee, dank je.", it: "No, grazie." },
+  ];
+  const cafeGreet: Draft[] = [];
+
   for (const g of greetings) {
-    out.push({ stage: "greetings", nl: `${g.nl}!`, it: `${g.it}!` });
-  }
-  for (const g of greetings) {
-    out.push({
+    hellos.push({ stage: "greetings", nl: `${g.nl}!`, it: `${g.it}!` });
+    withGrazie.push({
       stage: "greetings",
       nl: `${g.nl}, dank je.`,
       it: `${g.it}, grazie.`,
     });
-    out.push({
+    withPiacere.push({
       stage: "greetings",
       nl: `${g.nl}, aangenaam.`,
       it: `${g.it}, piacere.`,
     });
   }
   for (const f of farewells) {
-    out.push({
+    byes.push({
       stage: "greetings",
       nl: `Dank je, ${f.nl.toLowerCase()}!`,
       it: `Grazie, ${f.it.toLowerCase()}!`,
     });
-    out.push({
+    byes.push({
       stage: "greetings",
       nl: `Perfect, ${f.nl.toLowerCase()}!`,
       it: `Perfetto, ${f.it.toLowerCase()}!`,
     });
-    out.push({
+    byes.push({
       stage: "greetings",
       nl: `Goed, ${f.nl.toLowerCase()}!`,
       it: `Bene, ${f.it.toLowerCase()}!`,
     });
   }
-  out.push(
-    { stage: "greetings", nl: "Aangenaam!", it: "Piacere!" },
-    { stage: "greetings", nl: "Perfect, dank je.", it: "Perfetto, grazie." },
-    { stage: "greetings", nl: "Goed, dank je.", it: "Bene, grazie." },
-    { stage: "greetings", nl: "Ja, perfect.", it: "Sì, perfetto." },
-    { stage: "greetings", nl: "Nee, dank je.", it: "No, grazie." },
-  );
-  // Light café+greeting after pure greetings (still early)
   for (const g of [greetings[2], greetings[3]]) {
-    for (const d of drinks) {
-      out.push({
-        stage: "greetings",
-        nl: `${g.nl}, een ${d.nl} alsjeblieft.`,
-        it: `${g.it}, ${artPhrase(d)} per favore.`,
-      });
-    }
+    drinks.forEach((d, i) => {
+      if (i % 2 === 0) {
+        cafeGreet.push({
+          stage: "greetings",
+          nl: `${g.nl}, een ${d.nl}.`,
+          it: `${g.it}, ${artPhrase(d)}.`,
+        });
+      } else {
+        cafeGreet.push({
+          stage: "greetings",
+          nl: `${g.nl}, een ${d.nl} alsjeblieft.`,
+          it: `${g.it}, ${artPhrase(d)} per favore.`,
+        });
+      }
+    });
   }
-  return out;
+  return interleaveGroups(
+    hellos,
+    withGrazie,
+    withPiacere,
+    byes,
+    extras,
+    cafeGreet,
+  );
 }
 
 function stageOrigin(): Draft[] {
-  const out: Draft[] = [];
+  const ioSono: Draft[] = [];
+  const sono: Draft[] = [];
+  const tuSei: Draft[] = [];
+  const tuVero: Draft[] = [];
+  const lui: Draft[] = [];
+  const lei: Draft[] = [];
+  const named: Draft[] = [];
+
   for (const c of cities) {
-    out.push({
+    ioSono.push({
       stage: "origin",
       nl: `Ik kom uit ${c.nl}.`,
       it: `Io sono di ${c.it}.`,
     });
-    out.push({
+    sono.push({
       stage: "origin",
       nl: `Ik ben van ${c.nl}.`,
       it: `Sono di ${c.it}.`,
     });
-    out.push({
+    tuSei.push({
       stage: "origin",
       nl: `Jij komt uit ${c.nl}.`,
       it: `Tu sei di ${c.it}.`,
     });
-    out.push({
+    tuVero.push({
       stage: "origin",
       nl: `Jij komt uit ${c.nl}, toch?`,
       it: `Tu sei di ${c.it}, vero?`,
     });
-    out.push({
+    lui.push({
       stage: "origin",
       nl: `Hij komt uit ${c.nl}.`,
       it: `Lui è di ${c.it}.`,
     });
-    out.push({
+    lei.push({
       stage: "origin",
       nl: `Zij komt uit ${c.nl}.`,
       it: `Lei è di ${c.it}.`,
@@ -266,35 +354,39 @@ function stageOrigin(): Draft[] {
   // Fixed name order (m then f) × cities — progressive, not shuffled
   for (const p of people) {
     for (const c of cities) {
-      out.push({
+      named.push({
         stage: "origin",
         nl: `${p.nl} komt uit ${c.nl}.`,
         it: `${p.it} è di ${c.it}.`,
       });
-      out.push({
+      named.push({
         stage: "origin",
         nl: `${p.nl} komt uit ${c.nl}, toch?`,
         it: `${p.it} è di ${c.it}, vero?`,
       });
     }
   }
-  return out;
+  return interleaveGroups(ioSono, sono, tuSei, tuVero, lui, lei, named);
 }
 
 function stageFamily(): Draft[] {
-  const out: Draft[] = [];
+  const ho: Draft[] = [];
+  const ioHo: Draft[] = [];
+  const eTu: Draft[] = [];
+  const named: Draft[] = [];
+
   for (const f of family) {
-    out.push({
+    ho.push({
       stage: "family",
       nl: `Ik heb een ${f.nl}.`,
       it: `Ho ${artPhrase(f)}.`,
     });
-    out.push({
+    ioHo.push({
       stage: "family",
       nl: `Ik heb een ${f.nl}.`,
       it: `Io ho ${artPhrase(f)}.`,
     });
-    out.push({
+    eTu.push({
       stage: "family",
       nl: `Ik heb een ${f.nl}. En jij?`,
       it: `Ho ${artPhrase(f)}. E tu?`,
@@ -303,54 +395,62 @@ function stageFamily(): Draft[] {
   // Cycle names in stable order with family nouns
   for (const p of people) {
     for (const f of family.slice(0, 6)) {
-      out.push({
+      named.push({
         stage: "family",
         nl: `${p.nl}, ik heb een ${f.nl}.`,
         it: `${p.it}, ho ${artPhrase(f)}.`,
       });
     }
   }
-  out.push({ stage: "family", nl: "En jij?", it: "E tu?" });
-  return out;
+  return [
+    ...interleaveGroups(ho, ioHo, eTu, named),
+    { stage: "family", nl: "En jij?", it: "E tu?" },
+  ];
 }
 
 function stagePersonality(): Draft[] {
-  const out: Draft[] = [];
-  // è / allora warm-up
-  out.push(
+  const warmUp: Draft[] = [
     { stage: "personality", nl: "Is", it: "È" },
     { stage: "personality", nl: "Dus / nou", it: "Allora" },
     { stage: "personality", nl: "Hij", it: "Lui" },
     { stage: "personality", nl: "Zij", it: "Lei" },
-  );
+  ];
+
+  const luiAdj: Draft[] = [];
+  const leiAdj: Draft[] = [];
+  const luiVero: Draft[] = [];
+  const leiVero: Draft[] = [];
+  const ioM: Draft[] = [];
+  const ioF: Draft[] = [];
+  const named: Draft[] = [];
 
   for (const adj of adjectives) {
-    out.push({
+    luiAdj.push({
       stage: "personality",
       nl: `Hij is ${adj.nl}.`,
       it: `Lui è ${adj.m}.`,
     });
-    out.push({
+    leiAdj.push({
       stage: "personality",
       nl: `Zij is ${adj.nl}.`,
       it: `Lei è ${adj.f}.`,
     });
-    out.push({
+    luiVero.push({
       stage: "personality",
       nl: `Hij is ${adj.nl}, toch?`,
       it: `Lui è ${adj.m}, vero?`,
     });
-    out.push({
+    leiVero.push({
       stage: "personality",
       nl: `Zij is ${adj.nl}, toch?`,
       it: `Lei è ${adj.f}, vero?`,
     });
-    out.push({
+    ioM.push({
       stage: "personality",
       nl: `Ik ben ${adj.nl}.`,
       it: `Io sono ${adj.m}.`,
     });
-    out.push({
+    ioF.push({
       stage: "personality",
       nl: `Ik ben ${adj.nl}.`,
       it: `Io sono ${adj.f}.`,
@@ -360,52 +460,67 @@ function stagePersonality(): Draft[] {
   for (const p of people) {
     for (const adj of adjectives) {
       const form = adjFor(p.gender, adj);
-      out.push({
+      named.push({
         stage: "personality",
         nl: `${p.nl} is ${adj.nl}.`,
         it: `${p.it} è ${form}.`,
       });
-      out.push({
+      named.push({
         stage: "personality",
-        nl: `Allora, ${p.nl} is ${adj.nl}.`,
+        nl: `Dus, ${p.nl} is ${adj.nl}.`,
         it: `Allora, ${p.it} è ${form}.`,
       });
     }
   }
-  return out;
+  return [
+    ...warmUp,
+    ...interleaveGroups(luiAdj, leiAdj, luiVero, leiVero, ioM, ioF, named),
+  ];
 }
 
 function stagePlaces(): Draft[] {
-  const out: Draft[] = [];
+  const basic: Draft[] = [];
+  const withLoc: Draft[] = [];
+  const vero: Draft[] = [];
+  const si: Draft[] = [];
+  const no: Draft[] = [];
+  const named: Draft[] = [];
+  const extras: Draft[] = [
+    {
+      stage: "places",
+      nl: "Dus, er is een theater hier?",
+      it: "Allora, c'è un teatro qui?",
+    },
+    {
+      stage: "places",
+      nl: "Dus, er is een bibliotheek daar?",
+      it: "Allora, c'è una biblioteca lì?",
+    },
+  ];
+
   for (const place of places) {
-    out.push({
+    basic.push({
       stage: "places",
       nl: `Er is een ${place.nl}.`,
       it: `C'è ${artPhrase(place)}.`,
     });
-  }
-  for (const place of places) {
     for (const loc of hereThere) {
-      out.push({
+      withLoc.push({
         stage: "places",
         nl: `Er is een ${place.nl} ${loc.nl}.`,
         it: `C'è ${artPhrase(place)} ${loc.it}.`,
       });
-    }
-  }
-  for (const place of places) {
-    for (const loc of hereThere) {
-      out.push({
+      vero.push({
         stage: "places",
         nl: `Er is een ${place.nl} ${loc.nl}, toch?`,
         it: `C'è ${artPhrase(place)} ${loc.it}, vero?`,
       });
-      out.push({
+      si.push({
         stage: "places",
         nl: `Ja, er is een ${place.nl} ${loc.nl}.`,
         it: `Sì, c'è ${artPhrase(place)} ${loc.it}.`,
       });
-      out.push({
+      no.push({
         stage: "places",
         nl: `Nee, er is een ${place.nl} ${loc.nl}.`,
         it: `No, c'è ${artPhrase(place)} ${loc.it}.`,
@@ -416,26 +531,14 @@ function stagePlaces(): Draft[] {
   for (const p of people) {
     for (const place of places) {
       const loc = hereThere[p.gender === "m" ? 0 : 1];
-      out.push({
+      named.push({
         stage: "places",
         nl: `${p.nl}, er is een ${place.nl} ${loc.nl}, toch?`,
         it: `${p.it}, c'è ${artPhrase(place)} ${loc.it}, vero?`,
       });
     }
   }
-  out.push(
-    {
-      stage: "places",
-      nl: "Allora, er is een theater hier?",
-      it: "Allora, c'è un teatro qui?",
-    },
-    {
-      stage: "places",
-      nl: "Allora, er is een bibliotheek daar?",
-      it: "Allora, c'è una biblioteca lì?",
-    },
-  );
-  return out;
+  return interleaveGroups(basic, withLoc, vero, si, no, named, extras);
 }
 
 function toPrompts(drafts: Draft[], mode: SpeakingMode): SpeakingPrompt[] {
@@ -457,16 +560,17 @@ function toPrompts(drafts: Draft[], mode: SpeakingMode): SpeakingPrompt[] {
   return out;
 }
 
-/** Full curriculum in difficulty order (café → … → places). */
+/** Full curriculum in difficulty order (café → … → places).
+ *  Within each stage, order is a fixed seeded scramble (stable, not random). */
 export function buildProgressiveSentences(): SpeakingPrompt[] {
   return toPrompts(
     [
-      ...stageCafe(),
-      ...stageGreetings(),
-      ...stageOrigin(),
-      ...stageFamily(),
-      ...stagePersonality(),
-      ...stagePlaces(),
+      ...seededShuffle(stageCafe(), "cafe"),
+      ...seededShuffle(stageGreetings(), "greetings"),
+      ...seededShuffle(stageOrigin(), "origin"),
+      ...seededShuffle(stageFamily(), "family"),
+      ...seededShuffle(stagePersonality(), "personality"),
+      ...seededShuffle(stagePlaces(), "places"),
     ],
     "sentence",
   );
