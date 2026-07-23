@@ -1,6 +1,10 @@
 # Italian 101
 
-Interactive A1 Italian course — 24 lessons across 6 units, plus Dutch→Italian speaking practice with browser-local progress.
+Nederlandse app om Italiaans te leren (Nederlands → Italiaans).
+
+Interactive beginner Italian practice for Dutch speakers: an A1-style course path plus **Spreken** drills. Progress is saved in the browser (`localStorage`).
+
+> **Language support:** This application is **Dutch → Italian** only. **English is not supported** at this time (UI copy and speaking prompts are aimed at Dutch learners).
 
 ## Run locally
 
@@ -13,21 +17,27 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Features
 
-- **Course:** units → lessons → practice (MC, fill-blank, match, reorder)
-- **Spreken:** word or sentence mode; progressive path or random; progress saved in `localStorage`
-- Unlock next lesson at **70%+** practice score
+- **Cursus:** units → lessen → oefeningen (meerkeuze, invullen, matchen, herordenen)
+- **Spreken:** woord- of zinnenmodus; opbouwende route of willekeurig; voortgang in `localStorage`
+- Volgende les vrijspelen vanaf **70%+** op de oefening
 
 ## Course structure
 
-1. **Ciao** — sounds, greetings, introductions, *essere*
-2. **Vita quotidiana** — numbers, time, days, food
-3. **Persone e cose** — articles, gender/number, adjectives, family
-4. **Azioni** — present tense, irregulars, routines
-5. **Fuori** — places, prepositions, directions, shopping
-6. **Raccontare** — *passato prossimo*, near future, review, capstone
+1. **Ciao** — klanken, begroetingen, voorstellen, *essere*
+2. **Vita quotidiana** — getallen, tijd, dagen, eten
+3. **Persone e cose** — lidwoorden, geslacht/getal, bijvoeglijke naamwoorden, familie
+4. **Azioni** — tegenwoordige tijd, onregelmatige werkwoorden, routines
+5. **Fuori** — plaatsen, voorzetsels, richtingen, winkelen
+6. **Raccontare** — *passato prossimo*, nabije toekomst, herhaling, afsluitende dialoog
 
 ## Speaking path (opbouw)
 
 Café → begroetingen → herkomst → familie → persoonlijkheid → plaatsen
+
+## License
+
+See [LICENSE](LICENSE).
+
+## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for release history.
